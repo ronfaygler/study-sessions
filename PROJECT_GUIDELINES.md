@@ -25,14 +25,16 @@
 
 ## Development Workflow
 
-### Feature Development Process
-1. Implement the feature/endpoint
-2. Write unit tests (with mocks)
-3. Write integration tests (with real database)
-4. Run all tests to ensure they pass
-5. Make a commit with descriptive message
-6. **Ask for approval before pushing**
-7. Push only after user confirms
+### Feature Development Process (TDD - Test-Driven Development)
+1. **Write tests first** (they will fail initially)
+2. Implement the minimal code to make tests pass
+3. Run all tests to ensure they pass
+4. Write unit tests (with mocks) if not already done
+5. Write integration tests (with real database) if not already done
+6. Run all tests to ensure everything passes
+7. Make a commit with descriptive message
+8. **Ask for approval before pushing**
+9. Push only after user confirms
 
 ### Testing Requirements
 - Every new feature must have:
@@ -56,5 +58,5 @@
 ## Remember
 - Always ask before git operations
 - No AI mentions in commits
-- Test-driven approach for new features
+- **Test-Driven Development (TDD): Write tests first, then implement code**
 - Clean git history with meaningful commits
