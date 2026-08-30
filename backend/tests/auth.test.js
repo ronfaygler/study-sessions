@@ -13,7 +13,13 @@ jest.unstable_mockModule('../src/db.js', () => ({
 jest.unstable_mockModule('bcrypt', () => ({
   default: {
     hashSync: jest.fn((password, salt) => 'hashed_password'),
+    compare: jest.fn(),
   },
+}));
+
+// Mock JWT
+jest.unstable_mockModule('jsonwebtoken', () => ({
+  sign: jest.fn(() => 'mock_jwt_token'),
 }));
 
 const app = (await import('../src/app.js')).default;
@@ -267,6 +273,124 @@ describe('POST /auth/register', () => {
           'student',
         ])
       );
+    });
+  });
+});
+
+describe('POST /auth/login', () => {
+  beforeEach(() => {
+    mockQuery.mockClear();
+  });
+
+  describe('Validation tests', () => {
+    test('should return 400 if email is missing', async () => {
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          password: 'Test123!',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Email and password are required');
+    });
+
+    test('should return 400 if password is missing', async () => {
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: 'test@example.com',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Email and password are required');
+    });
+
+    test('should return 400 if both email and password are missing', async () => {
+      const response = await request(app)
+        .post('/auth/login')
+        .send({});
+
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Email and password are required');
+    });
+  });
+
+  describe('Authentication tests', () => {
+    test('should return 401 if user not found', async () => {
+      mockQuery.mockResolvedValue({ rows: [] });
+
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: 'nonexistent@example.com',
+          password: 'Test123!',
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.text).toBe('Invalid email or password');
+    });
+
+    test('should return 401 if password is invalid', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@example.com',
+        password: 'hashed_password',
+        role: 'student',
+      };
+      mockQuery.mockResolvedValue({ rows: [mockUser] });
+      
+      const bcrypt = await import('bcrypt');
+      bcrypt.default.compare.mockResolvedValue(false);
+
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'WrongPassword!',
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.text).toBe('Invalid email or password');
+    });
+
+    test('should return 200 with token on successful login', async () => {
+      const mockUser = {
+        id: 1,
+        email: 'test@example.com',
+        password: 'hashed_password',
+        role: 'student',
+      };
+      mockQuery.mockResolvedValue({ rows: [mockUser] });
+      
+      const bcrypt = await import('bcrypt');
+      bcrypt.default.compare.mockResolvedValue(true);
+
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'Test123!',
+        });
+
+      expect(response.status).toBe(200);
+      expect(response.body).toHaveProperty('token');
+      expect(response.body.token).toBe('mock_jwt_token');
+    });
+  });
+
+  describe('Database error handling', () => {
+    test('should return 500 on database error', async () => {
+      mockQuery.mockRejectedValue(new Error('Database error'));
+
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: 'test@example.com',
+          password: 'Test123!',
+        });
+
+      expect(response.status).toBe(500);
+      expect(response.text).toBe('Internal Server Error');
     });
   });
 });

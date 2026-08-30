@@ -218,4 +218,118 @@ describe('POST /auth/register - Integration Tests', () => {
       expect(dbUser.rows.length).toBe(0);
     });
   });
+
+  describe('POST /auth/login - Integration Tests', () => {
+    test('should successfully login with valid credentials', async () => {
+      // First register a user
+      const userData = {
+        name: 'Login User',
+        email: 'login@test.com',
+        password: 'LoginPass123!',
+        role: 'student',
+      };
+
+      await request(app).post('/auth/register').send(userData);
+
+      // Now try to login
+      const loginResponse = await request(app)
+        .post('/auth/login')
+        .send({
+          email: userData.email,
+          password: userData.password,
+        });
+
+      expect(loginResponse.status).toBe(200);
+      expect(loginResponse.body).toHaveProperty('token');
+      expect(typeof loginResponse.body.token).toBe('string');
+      expect(loginResponse.body.token.length).toBeGreaterThan(0);
+    });
+
+    test('should return 401 with invalid email', async () => {
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: 'nonexistent@test.com',
+          password: 'SomePassword123!',
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.text).toBe('Invalid email or password');
+    });
+
+    test('should return 401 with invalid password', async () => {
+      // Register a user first
+      const userData = {
+        name: 'Wrong Pass User',
+        email: 'wrongpass@test.com',
+        password: 'CorrectPass123!',
+        role: 'student',
+      };
+
+      await request(app).post('/auth/register').send(userData);
+
+      // Try to login with wrong password
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: userData.email,
+          password: 'WrongPassword123!',
+        });
+
+      expect(response.status).toBe(401);
+      expect(response.text).toBe('Invalid email or password');
+    });
+
+    test('should return 400 with missing email', async () => {
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          password: 'SomePassword123!',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Email and password are required');
+    });
+
+    test('should return 400 with missing password', async () => {
+      const response = await request(app)
+        .post('/auth/login')
+        .send({
+          email: 'test@test.com',
+        });
+
+      expect(response.status).toBe(400);
+      expect(response.text).toBe('Email and password are required');
+    });
+
+    test('should generate valid JWT token', async () => {
+      const userData = {
+        name: 'Token User',
+        email: 'token@test.com',
+        password: 'TokenPass123!',
+        role: 'teacher',
+      };
+
+      await request(app).post('/auth/register').send(userData);
+
+      const loginResponse = await request(app)
+        .post('/auth/login')
+        .send({
+          email: userData.email,
+          password: userData.password,
+        });
+
+      expect(loginResponse.status).toBe(200);
+      const token = loginResponse.body.token;
+
+      // Verify token structure (JWT tokens have 3 parts separated by dots)
+      const tokenParts = token.split('.');
+      expect(tokenParts.length).toBe(3);
+
+      // Each part should be base64 encoded (non-empty)
+      tokenParts.forEach(part => {
+        expect(part.length).toBeGreaterThan(0);
+      });
+    });
+  });
 });

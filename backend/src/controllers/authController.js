@@ -1,5 +1,6 @@
 import bcrypt from 'bcrypt';
 import { pool } from '../db.js';
+import { sign } from 'jsonwebtoken';
 
 export const register = async (req, res) => {
     const { name, email, password, role } = req.body;
@@ -74,7 +75,7 @@ export const login = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).send('Invalid email or password');
         }
-        const token = jwt.sign({id: user.rows[0].id, role: user.rows[0].role}, process.env.JWT_SECRET, {expiresIn: '1h'});
+        const token = sign({id: user.rows[0].id, role: user.rows[0].role}, process.env.JWT_SECRET, {expiresIn: '1h'});
         return res.status(200).json({token});
     } catch (error) {
         console.error(error);
