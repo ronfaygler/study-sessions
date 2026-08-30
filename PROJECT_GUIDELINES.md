@@ -2,6 +2,12 @@
 
 ## Git Workflow Rules
 
+### Branch Strategy
+- **Create a new branch for each feature**
+- Branch naming convention: `feature/feature-name` (e.g., `feature/login-endpoint`)
+- Work on the feature branch until completion
+- After feature is complete (code + tests passing + pushed to main), delete the feature branch
+
 ### Commit Strategy
 - **Make a commit after completing each feature/endpoint**
 - Each commit should include:
@@ -26,15 +32,22 @@
 ## Development Workflow
 
 ### Feature Development Process (TDD - Test-Driven Development)
-1. **Write tests first** (they will fail initially)
-2. Implement the minimal code to make tests pass
-3. Run all tests to ensure they pass
-4. Write unit tests (with mocks) if not already done
-5. Write integration tests (with real database) if not already done
-6. Run all tests to ensure everything passes
-7. Make a commit with descriptive message
-8. **Ask for approval before pushing**
-9. Push only after user confirms
+1. **Create a new branch** for the feature: `git checkout -b feature/feature-name`
+2. **Write tests first** (they will fail initially)
+3. Implement the minimal code to make tests pass
+4. Run all tests to ensure they pass
+5. Write unit tests (with mocks) if not already done
+6. Write integration tests (with real database) if not already done
+7. Run all tests to ensure everything passes
+8. Make a commit with descriptive message
+9. Switch to main branch and pull latest changes: `git checkout main && git pull`
+10. Switch back to feature branch: `git checkout feature/feature-name`
+11. Rebase feature branch on main: `git rebase main`
+12. Switch to main branch: `git checkout main`
+13. Merge feature branch to main: `git merge feature/feature-name`
+14. **Ask for approval before pushing**
+15. Push to main: `git push`
+16. Delete feature branch: `git branch -d feature/feature-name`
 
 ### Testing Requirements
 - Every new feature must have:
