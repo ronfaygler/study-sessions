@@ -22,7 +22,7 @@ jest.unstable_mockModule('jsonwebtoken', () => ({
   sign: jest.fn(() => 'mock_jwt_token'),
 }));
 
-const app = (await import('../src/app.js')).default;
+const app = (await import('../../src/app.js')).default;
 
 describe('POST /auth/register', () => {
   beforeEach(() => {

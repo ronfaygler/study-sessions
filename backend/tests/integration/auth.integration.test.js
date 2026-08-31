@@ -1,7 +1,7 @@
 import request from 'supertest';
-import { pool } from '../src/db.js';
+import { pool } from '../../src/db.js';
 import bcrypt from 'bcrypt';
-import app from '../src/app.js';
+import app from '../../src/app.js';
 
 describe('POST /auth/register - Integration Tests', () => {
   // Clean up test data before and after tests
