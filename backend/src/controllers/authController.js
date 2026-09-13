@@ -1,6 +1,7 @@
 import bcrypt from 'bcrypt';
 import { pool } from '../db.js';
-import { sign } from 'jsonwebtoken';
+import jwt from 'jsonwebtoken';
+import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from '../../../constants.js';
 
 export const register = async (req, res) => {
     const { name, email, password, role } = req.body;
@@ -19,8 +20,8 @@ export const register = async (req, res) => {
    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
      return res.status(400).send('Invalid email format');
    }    
-   if (password.length < 6) {
-        return res.status(400).send('Password must be at least 6 characters long');
+   if (password.length < MIN_PASSWORD_LENGTH) {
+        return res.status(400).send(`Password must be at least ${MIN_PASSWORD_LENGTH} characters long`);
     }
     if (password.includes(' ')) {
         return res.status(400).send('Password cannot contain spaces');
@@ -37,8 +38,8 @@ export const register = async (req, res) => {
     if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) {
         return res.status(400).send('Password must contain at least one special character');
     }
-    if (password.length > 20) {
-        return res.status(400).send('Password must be at most 20 characters long');
+    if (password.length > MAX_PASSWORD_LENGTH) {
+        return res.status(400).send(`Password must be at most ${MAX_PASSWORD_LENGTH} characters long`);
     }
 
     //encrypt password
@@ -75,7 +76,7 @@ export const login = async (req, res) => {
         if (!isPasswordValid) {
             return res.status(401).send('Invalid email or password');
         }
-        const token = sign({id: user.rows[0].id, role: user.rows[0].role}, process.env.JWT_SECRET, {expiresIn: '1h'});
+        const token = jwt.sign({id: user.rows[0].id, role: user.rows[0].role}, process.env.JWT_SECRET, {expiresIn: '1h'});
         return res.status(200).json({token});
     } catch (error) {
         console.error(error);
