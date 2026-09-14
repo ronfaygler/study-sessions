@@ -1,56 +1,24 @@
-import { useState } from 'react'
 import './App.css'
 import LoginPage from './pages/LoginPage'
 import RegisterPage from './pages/RegisterPage'
+import HomePage from './pages/HomePage'
+import ProtectedRoute from './components/ProtectedRoute'
+import PublicRoute from './components/PublicRoute'
+import { Routes, Route, Navigate } from 'react-router-dom'
 
 function App() {
-  const handleRegister = async (data) => {
-    console.log(data);
-    try {
-      const response = await fetch(`{}/auth/register`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const result = await response.json();
-      if (response.ok) {
-        console.log(result);
-      } else {
-        console.error(result.error);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
-  const handleLogin = async (data) => {
-    console.log(data);
-    try {
-      const response = await fetch(`{}/auth/login`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-      const result = await response.json();
-      if (response.ok) {
-        console.log(result);
-      } else {
-        console.error(result.error);
-      }
-    } catch (error) {
-      console.error(error);
-    }
-  }
-
   return (
-    <>
-      <LoginPage onSubmit={handleLogin}/>
-      {/* <RegisterPage onSubmit={handleRegister} /> */}
-    </>
+    <Routes>
+      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route element={<PublicRoute />}>
+        <Route path="/login" element={ <LoginPage />}/>
+        <Route path="/register" element={ <RegisterPage />}/>
+      </Route>
+      <Route element={<ProtectedRoute />}>
+        <Route path="/home" element={ <HomePage />}/>
+      </Route>
+      <Route path="*" element={<Navigate to="/login" replace />} />
+    </Routes>
   )
 }
 
