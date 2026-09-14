@@ -3,7 +3,7 @@ import { jest } from '@jest/globals';
 
 // Mock the database pool
 const mockQuery = jest.fn();
-jest.unstable_mockModule('../src/db.js', () => ({
+jest.unstable_mockModule('../../src/db.js', () => ({
   pool: {
     query: mockQuery,
   },
@@ -19,7 +19,9 @@ jest.unstable_mockModule('bcrypt', () => ({
 
 // Mock JWT
 jest.unstable_mockModule('jsonwebtoken', () => ({
-  sign: jest.fn(() => 'mock_jwt_token'),
+  default: {
+    sign: jest.fn(() => 'mock_jwt_token'),
+  },
 }));
 
 const app = (await import('../../src/app.js')).default;

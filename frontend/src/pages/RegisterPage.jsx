@@ -3,24 +3,31 @@ import FormField from "../components/FormField";
 import { useState, useEffect } from "react";
 import { MIN_PASSWORD_LENGTH, MAX_PASSWORD_LENGTH } from "../../../constants.js";
 import { useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
-function RegisterPage({ onSubmit }) {
+const API_URL = import.meta.env.VITE_API_URL;
+
+function RegisterPage() {
     const [name, setName] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [role, setRole] = useState("");
     const inputRef = useRef(null);
+    const navigate = useNavigate();
+    const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [success, setSuccess] = useState("");
 
-    const isDisabled = !(name && email && password && role);
+    const isDisabled = !(name && email && password && role) || loading;
 
     useEffect(()=>{
         inputRef.current.focus();
     }, []);
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setError("");
+        setSuccess("");
         if (!name.trim()) {
             setError(`Name is required`);
             return;
@@ -31,6 +38,7 @@ function RegisterPage({ onSubmit }) {
         }
         if (name.length < 3){
             setError(`Name must be at least 3 characters long`)
+            return;
         }
         if (!email.trim()) {
             setError(`Email is required`);
@@ -68,7 +76,27 @@ function RegisterPage({ onSubmit }) {
             setError(`Password must be at most ${MAX_PASSWORD_LENGTH} characters long`);
             return;
         }
-        onSubmit?.({ name, email, password, role });
+        try {
+            setLoading(true);
+            const response = await fetch(`${API_URL}/auth/register`, {
+                method: 'POST',
+                body: JSON.stringify({ name, email, password, role }),
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+            if (!response.ok) {
+                setError(await response.text() || "Registration failed");
+            } else {
+                setSuccess("Registration succeeded");
+                navigate("/login");
+            }
+        } catch (error) {
+            setError("Registration failed");
+        }
+        finally {
+            setLoading(false);
+        }
     };
 
     return (
@@ -106,6 +134,7 @@ function RegisterPage({ onSubmit }) {
             </div>
             <Button name="Register" onClick={handleSubmit} disabled={isDisabled} />
             { error && <p className="error">{error} </p> }
+            { success && <p className="success">{success}</p> }
         </form>
     );
 }

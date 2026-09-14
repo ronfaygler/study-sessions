@@ -4,7 +4,9 @@ import request from 'supertest';
 // Mock JWT
 const mockVerify = jest.fn();
 jest.unstable_mockModule('jsonwebtoken', () => ({
-  verify: mockVerify,
+  default: {
+    verify: mockVerify,
+  },
 }));
 
 let authMiddleware;
